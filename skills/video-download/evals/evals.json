@@ -1,0 +1,23 @@
+{
+  "skill_name": "video-download",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我下载这个视频 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "expected_output": "Skill应该: 1)检查yt-dlp是否安装 2)获取视频信息 3)让用户选择格式 4)执行下载",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我想下载B站的视频，链接是 https://www.bilibili.com/video/BV1xx411c7XD",
+      "expected_output": "Skill应该处理B站视频，解析可用格式，让用户选择",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我把这个YouTube视频下成mp3: https://youtu.be/abc123",
+      "expected_output": "Skill应该识别用户需要音频格式，使用-x --audio-format mp3选项",
+      "files": []
+    }
+  ]
+}
