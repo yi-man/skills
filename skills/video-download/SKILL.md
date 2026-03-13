@@ -1,159 +1,116 @@
 ---
 name: video-download
-description: 使用yt-dlp下载视频。当用户给出视频链接（YouTube、B站等），或请求下载视频/音频时，必须使用此Skill。自动检查yt-dlp是否安装，获取视频信息让用户选择格式和画质，然后执行下载。也支持用户说"转成mp3"、"下载音频"等音频提取需求。
+description: 使用 Playwright + yt-dlp 下载视频。支持抖音、小红书、B站等国内平台及 YouTube、Twitter 等国际平台。当用户给出视频链接或请求下载视频/音频时使用此Skill。
 ---
 
-# yt-dlp 视频下载 Skill
+# 视频下载 Skill
 
 ## 概述
 
-此Skill帮助用户使用yt-dlp工具下载视频。支持YouTube、B站等国内外主流视频平台。
+此 Skill 帮助用户下载视频。支持以下平台：
 
-**注意：抖音/ TikTok 目前无法通过 yt-dlp 下载**，因为抖音加强了反爬机制，需要特定的浏览器指纹（s_v_web_id）才能访问API。如需下载抖音视频，请使用抖音APP的"保存到本地"功能或手机录屏。
+| 平台 | 下载方式 | 说明 |
+|------|----------|------|
+| 抖音 | Playwright | 支持短链和完整链接 |
+| 小红书 | Playwright | 支持图文和视频笔记 |
+| B站 | Playwright | 支持登录获取高清 |
+| YouTube | yt-dlp | 4K、HDR 等 |
+| Twitter/X | yt-dlp | |
+| Instagram | yt-dlp | |
+| 其他1700+站点 | yt-dlp | |
 
 ## 使用场景
 
 - 用户给出视频链接并要求下载
 - 用户说"帮我下载这个视频"
-- 用户请求使用yt-dlp下载视频
-- 用户提到"youtube-dl"或"yt-dlp"
+- 用户请求下载抖音/小红书/B站视频
 
 ## 完整工作流程
 
-### 步骤1：检查yt-dlp是否已安装
+### 步骤1：检查依赖是否已安装
 
-执行以下命令检查：
-
-```bash
-which yt-dlp
-```
-
-或者：
+首次使用需安装依赖，运行：
 
 ```bash
-yt-dlp --version
+bash ~/.cursor/skills/video-download/scripts/install_deps.sh
 ```
 
-如果yt-dlp未安装，必须先告知用户安装方法：
+此脚本会安装：
+- yt-dlp
+- Playwright + Chromium 浏览器
+- ffmpeg (可选，B站合并音视频需要)
 
-**macOS (Homebrew):**
+### 步骤2：检测平台并下载
+
+用户提供视频链接后，使用以下命令下载：
 
 ```bash
-brew install yt-dlp
+python3 ~/.cursor/skills/video-download/scripts/download.py "<视频链接>"
 ```
 
-**Linux:**
+**自动识别平台：**
+- 抖音: `v.douyin.com/xxx` 或 `www.douyin.com/video/xxx`
+- 小红书: `xhslink.com/xxx` 或 `xiaohongshu.com/discovery/item/xxx`
+- B站: `b23.tv/xxx` 或 `bilibili.com/video/BVxxx`
+- YouTube/Twitter等: 自动使用 yt-dlp
+
+### 步骤3：指定输出文件名（可选）
 
 ```bash
-sudo pip install yt-dlp
+python3 ~/.cursor/skills/video-download/scripts/download.py "<链接>" "我的视频"
 ```
 
-**Windows (winget):**
+文件会保存到 `~/Downloads/` 目录。
+
+## 登录支持
+
+B站需要登录才能下载高清视频。
+
+### 登录命令
 
 ```bash
-winget install yt-dlp.yt-dlp
+python3 ~/.cursor/skills/video-download/scripts/login.py login bilibili
+python3 ~/.cursor/skills/video-download/scripts/login.py login douyin
+python3 ~/.cursor/skills/video-download/scripts/login.py login xiaohongshu
 ```
 
-### 步骤2：解析视频信息
+登录后会打开浏览器，用户完成登录后关闭浏览器即可自动保存 cookie。
 
-用户给出视频链接后，使用以下命令获取视频信息：
+### 检查登录状态
 
 ```bash
-yt-dlp --list-formats <视频链接>
+python3 ~/.cursor/skills/video-download/scripts/download.py check-login bilibili
 ```
-
-或者使用更详细的输出：
-
-```bash
-yt-dlp -F <视频链接>
-```
-
-### 步骤3：展示可用格式给用户
-
-将格式列表展示给用户，包含：
-
-- 格式代码 (format code)
-- 分辨率 (resolution)
-- 文件大小/扩展名 (extension)
-- 编码信息 (codec)
-
-### 步骤4：让用户选择下载格式
-
-询问用户希望下载的格式和质量，常见选项：
-
-- **最佳质量视频+音频**: `--format best`
-- **仅视频 (最佳画质)**: `--format bestvideo`
-- **仅音频 (最佳音质)**: `--format bestaudio`
-- **指定格式**: `--format <格式代码>` (如 `bv+ba/best`)
-- **指定分辨率**: `--format "best[height<=1080]"` (限制1080p以下)
-
-或者让用户从步骤2的列表中选择格式代码。
-
-### 步骤5：执行下载
-
-根据用户选择执行下载，命令示例：
-
-```bash
-# 下载到当前目录
-yt-dlp -f <格式> <视频链接>
-
-# 下载到指定目录
-yt-dlp -f <格式> -o "~/Downloads/%(title)s.%(ext)s" <视频链接>
-
-# 仅下载音频 (mp3)
-yt-dlp -x --audio-format mp3 <视频链接>
-
-# 下载字幕
-yt-dlp --write-subs --sub-lang zh-CN <视频链接>
-
-# 下载最佳质量 (视频+音频合并)
-yt-dlp -f "bv+ba/best" <视频链接>
-```
-
-### 步骤6：显示下载结果
-
-下载完成后，显示：
-
-- 文件保存路径
-- 文件大小
-- 下载状态
 
 ## 常见下载选项
 
-| 选项                        | 说明                                      |
-| --------------------------- | ----------------------------------------- |
-| `-f <format>`               | 指定格式代码                              |
-| `-o <path>`                 | 指定输出路径模板                          |
-| `-x`                        | 仅提取音频                                |
-| `--audio-format mp3`        | 转换为MP3                                 |
-| `--write-subs`              | 下载字幕                                  |
-| `--write-auto-subs`         | 下载自动字幕                              |
-| `--sub-lang <lang>`         | 指定字幕语言                              |
-| `-k`                        | 保留视频/音频文件（下载分离的格式后合并） |
-| `--merge-output-format mp4` | 合并时输出为MP4                           |
+### 仅下载音频（MP3）
+
+使用 yt-dlp 的 `-x` 选项：
+
+```bash
+yt-dlp -x --audio-format mp3 "<YouTube链接>"
+```
+
+注意：抖音/小红书视频不支持此方式。
+
+### 下载字幕
+
+```bash
+yt-dlp --write-subs --sub-lang zh-CN "<链接>"
+```
 
 ## 平台注意事项
 
-- **YouTube**: 支持4K、HDR等
-- **Bilibili**: 可能需要 `--cookies-from-browser chrome` 登录cookie
-- **抖音/TikTok**: ⚠️ **暂不支持** - 由于抖音加强了反爬机制，目前无法通过 yt-dlp 下载
-- **X (Twitter)**: 支持
-- **小红书**: 可能需要cookie
-
-## 常见用户意图识别
-
-除了直接说"下载视频"，以下情况也应该触发此Skill：
-
-- "把这个视频转成mp3" / "下载音频"
-- "帮我下这首歌" (YouTube/Spotify链接)
-- "只要音频，不要视频"
-- "提取视频的背景音乐"
+| 平台 | 注意事项 |
+|------|----------|
+| B站 | 登录后可下载高清；番剧/付费内容可能不支持 |
+| 抖音 | 使用 Playwright 模拟浏览器访问 |
+| 小红书 | 图文笔记无法下载视频 |
+| YouTube | 支持 4K、HDR |
 
 ## 错误处理
 
-如果下载失败：
-
-1. 检查网络连接
-2. 尝试更新yt-dlp: `pip install -U yt-dlp`
-3. 某些网站可能需要cookie认证
-4. 检查是否被网站封锁，尝试使用 `--user-agent` 参数
+1. **Playwright 未安装**：运行 `bash ~/.cursor/skills/video-download/scripts/install_deps.sh`
+2. **ffmpeg 未安装**（B站下载失败）：`brew install ffmpeg`
+3. **下载失败**：检查网络连接，或尝试更新 yt-dlp: `pip3 install -U yt-dlp`
