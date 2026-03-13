@@ -18,6 +18,18 @@
       "prompt": "帮我把这个YouTube视频下成mp3: https://youtu.be/abc123",
       "expected_output": "Skill应该识别用户需要音频格式，使用-x --audio-format mp3选项",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "下载这个抖音视频 https://www.douyin.com/video/7616657021613493556",
+      "expected_output": "Skill应该: 1)使用Playwright而非yt-dlp 2)调用download.py下载抖音链接 3)保存到Downloads目录",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "帮我下小红书这个视频 https://xhslink.com/xxx",
+      "expected_output": "Skill应该使用Playwright下载小红书视频",
+      "files": []
     }
   ]
 }
