@@ -15,7 +15,7 @@
     },
     {
       "id": 3,
-      "prompt": "帮我把这个YouTube视频下成mp3: https://youtu.be/abc123",
+      "prompt": "帮我把这个YouTube视频下成mp3: https://youtu.be/dQw4w9WgXcQ",
       "expected_output": "Skill应该识别用户需要音频格式，使用-x --audio-format mp3选项",
       "files": []
     },
