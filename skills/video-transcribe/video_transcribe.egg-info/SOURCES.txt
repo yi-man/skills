@@ -1,6 +1,0 @@
-pyproject.toml
-video_transcribe.egg-info/PKG-INFO
-video_transcribe.egg-info/SOURCES.txt
-video_transcribe.egg-info/dependency_links.txt
-video_transcribe.egg-info/requires.txt
-video_transcribe.egg-info/top_level.txt
