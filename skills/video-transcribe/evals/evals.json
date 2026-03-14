@@ -1,0 +1,23 @@
+{
+  "skill_name": "video-transcribe",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "提取这个YouTube视频的文字 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "expected_output": "Skill应该: 1)调用video-download下载视频 2)用yt-dlp下载字幕 3)是英文则翻译成中文 4)输出到txt文件",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我把这个B站视频转成文字 https://www.bilibili.com/video/BV1xx411c7XD",
+      "expected_output": "Skill应该处理B站视频，尝试下载字幕后转写",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "下载这个抖音视频的文字 https://v.douyin.com/abc123",
+      "expected_output": "Skill应该使用Whisper进行语音识别",
+      "files": []
+    }
+  ]
+}
