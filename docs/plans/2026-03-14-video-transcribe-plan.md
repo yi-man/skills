@@ -1,3 +1,124 @@
+# video-transcribe 实现计划
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** 从视频URL提取文字并翻译，复用 video-download 下载视频，输出中英对照纯文本
+
+**Architecture:** 视频URL → video-download 下载 → 尝试 yt-dlp 字幕 → 失败则 Whisper 识别 → Google 翻译 → 输出文本
+
+**Tech Stack:** Python, yt-dlp, openai-whisper, googletrans
+
+---
+
+### Task 1: 创建 SKILL.md 技能定义
+
+**Files:**
+- Create: `skills/video-transcribe/SKILL.md`
+
+**Step 1: 写入 skill 定义**
+
+```markdown
+---
+name: video-transcribe
+description: 从视频URL提取文字并翻译。支持YouTube/B站等有字幕的平台，以及抖音/小红书等需要语音识别的平台。英文内容会提供中英文对照。
+---
+
+# 视频转文字 Skill
+
+## 概述
+
+从视频URL提取文字并翻译。复用 video-download 下载视频。
+
+## 使用方式
+
+```bash
+python3 ~/.cursor/skills/video-transcribe/transcribe.py "<视频链接>"
+```
+
+## 支持平台
+
+| 平台 | 文字提取方式 |
+|------|-------------|
+| YouTube | 直接下载字幕 |
+| B站 | 直接下载字幕 |
+| 抖音/小红书 | Whisper 语音识别 |
+
+## 输出示例
+
+```
+英文原文:
+This is the video content...
+
+中文翻译:
+这是视频内容...
+```
+
+## 依赖
+
+首次使用需安装：
+```bash
+pip3 install googletrans==4.0.0-rc1
+pip3 install openai-whisper
+brew install ffmpeg
+```
+```
+
+**Step 2: 提交**
+
+```bash
+git add skills/video-transcribe/SKILL.md
+git commit -m "feat: add video-transcribe skill definition"
+```
+
+---
+
+### Task 2: 创建安装脚本
+
+**Files:**
+- Create: `skills/video-transcribe/scripts/install_deps.sh`
+
+**Step 1: 写入安装脚本**
+
+```bash
+#!/bin/bash
+# video-transcribe 依赖安装脚本
+
+echo "安装 Python 依赖..."
+
+# Google 翻译 API
+pip3 install googletrans==4.0.0-rc1 || pip install googletrans==4.0.0-rc1
+
+# Whisper 语音识别
+pip3 install openai-whisper || pip install openai-whisper
+
+# ffmpeg (macOS)
+if command -v brew &> /dev/null; then
+    brew install ffmpeg
+else
+    echo "请手动安装 ffmpeg: https://ffmpeg.org/download.html"
+fi
+
+echo "安装完成！"
+```
+
+**Step 2: 添加执行权限并提交**
+
+```bash
+chmod +x skills/video-transcribe/scripts/install_deps.sh
+git add skills/video-transcribe/scripts/install_deps.sh
+git commit -m "feat: add install_deps.sh"
+```
+
+---
+
+### Task 3: 创建主转写脚本
+
+**Files:**
+- Create: `skills/video-transcribe/scripts/transcribe.py`
+
+**Step 1: 写入完整脚本**
+
+```python
 #!/usr/bin/env python3
 """
 视频转文字脚本
@@ -11,6 +132,13 @@ import re
 import subprocess
 import tempfile
 
+# Google 翻译
+try:
+    from googletrans import Translator
+    GOOGLE_TRANSLATOR_AVAILABLE = True
+except ImportError:
+    GOOGLE_TRANSLATOR_AVAILABLE = False
+
 VIDEO_DOWNLOAD_SCRIPT = os.path.expanduser('~/.cursor/skills/video-download/scripts/download.py')
 DOWNLOADS_DIR = os.path.expanduser('~/Downloads')
 
@@ -23,38 +151,6 @@ def detect_language(text):
     if total_chars == 0:
         return 'en'
     return 'zh' if chinese_chars / total_chars > 0.3 else 'en'
-
-
-def download_subtitles(url):
-    """尝试用 yt-dlp 直接下载字幕"""
-    print("[2/4] 尝试下载字幕...")
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        cmd = [
-            'yt-dlp',
-            '--write-subs',
-            '--write-auto-subs',
-            '--sub-lang', 'en,zh-CN',
-            '--skip-download',
-            '--output', os.path.join(tmpdir, 'subtitle'),
-            url
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        print(f"  yt-dlp: {result.returncode}")
-
-        if result.returncode == 0:
-            for f in os.listdir(tmpdir):
-                if f.endswith('.vtt') or f.endswith('.srt'):
-                    subtitle_path = os.path.join(tmpdir, f)
-                    with open(subtitle_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    text = extract_text_from_subtitle(content)
-                    if text:
-                        print(f"  成功下载字幕")
-                        return text
-
-    return None
 
 
 def download_video(url):
@@ -73,6 +169,7 @@ def download_video(url):
         return None
 
     # 查找下载的文件
+    # video-download 输出 "下载完成: /path/to/file.mp4"
     match = re.search(r'下载完成:?\s+(.+\.mp4)', result.stdout)
     if match:
         return match.group(1).strip()
@@ -94,10 +191,12 @@ def download_video(url):
 
 
 def get_subtitles_with_ytdlp(video_path):
-    """用本地视频路径下载字幕（yt-dlp 也支持本地文件）"""
-    print("[2/4] 尝试从本地视频下载字幕...")
+    """尝试用 yt-dlp 下载字幕"""
+    print("[2/4] 尝试下载字幕...")
 
+    # 创建临时目录存放字幕
     with tempfile.TemporaryDirectory() as tmpdir:
+        # yt-dlp --write-subs --skip-download --output template
         cmd = [
             'yt-dlp',
             '--write-subs',
@@ -131,26 +230,16 @@ def extract_text_from_subtitle(content):
     """从字幕文件中提取纯文本"""
     lines = content.split('\n')
     text_lines = []
-    skip_metadata = True  # 跳过 WEBVTT 头部
 
     for line in lines:
         line = line.strip()
-        # 跳过 WEBVTT 头部和元数据
-        if skip_metadata:
-            if line == 'WEBVTT' or line.startswith('Kind:') or line.startswith('Language:'):
-                continue
-            if line and not line.startswith('[') and '-->' not in line:
-                skip_metadata = False
         # 跳过时间轴和空行
         if not line or '-->' in line or line.isdigit():
             continue
-        # 跳过标签和音符符号
-        if line.startswith('<') or line == '♪' or line == '[]':
+        # 跳过标签
+        if line.startswith('<'):
             continue
-        # 清理音符
-        line = line.replace('♪', '').strip()
-        if line:
-            text_lines.append(line)
+        text_lines.append(line)
 
     return '\n'.join(text_lines)
 
@@ -181,12 +270,9 @@ def translate_to_chinese(text):
     """使用 Google API 翻译成中文"""
     print("[3/4] 翻译成中文...")
 
-    try:
-        import asyncio
-        from googletrans import Translator
-    except ImportError:
+    if not GOOGLE_TRANSLATOR_AVAILABLE:
         print("  错误: 请先安装 googletrans")
-        print("  pip3 install googletrans")
+        print("  pip3 install googletrans==4.0.0-rc1")
         return None
 
     try:
@@ -197,8 +283,7 @@ def translate_to_chinese(text):
 
         for para in paragraphs:
             if para.strip():
-                # 新版 googletrans 是异步的
-                result = asyncio.run(translator.translate(para, src='en', dest='zh-cn'))
+                result = translator.translate(para, src='en', dest='zh-cn')
                 translated.append(result.text)
 
         return '\n\n'.join(translated)
@@ -229,18 +314,19 @@ def save_result(original_text, translated_text, video_path):
 
 def transcribe(url):
     """主流程"""
-    video_path = None
+    # 1. 下载视频
+    video_path = download_video(url)
+    if not video_path:
+        print("错误: 视频下载失败")
+        return
 
-    # 1. 先尝试直接用 URL 下载字幕（更高效）
-    text = download_subtitles(url)
+    print(f"  视频路径: {video_path}")
 
-    # 2. 字幕失败，再下载视频用 Whisper
+    # 2. 尝试获取字幕
+    text = get_subtitles_with_ytdlp(video_path)
+
+    # 3. 失败则用 Whisper
     if not text:
-        video_path = download_video(url)
-        if not video_path:
-            print("错误: 视频下载失败")
-            return
-        print(f"  视频路径: {video_path}")
         text = transcribe_with_whisper(video_path)
 
     if not text:
@@ -258,9 +344,6 @@ def transcribe(url):
         translated = translate_to_chinese(text)
 
     # 5. 保存结果
-    # 用视频名或时间戳作为文件名
-    if not video_path:
-        video_path = f"video_{int(__import__('time').time())}"
     save_result(text, translated, video_path)
 
 
@@ -270,3 +353,79 @@ if __name__ == '__main__':
         sys.exit(1)
 
     transcribe(sys.argv[1])
+```
+
+**Step 2: 添加执行权限并提交**
+
+```bash
+chmod +x skills/video-transcribe/scripts/transcribe.py
+git add skills/video-transcribe/scripts/transcribe.py
+git commit -m "feat: add transcribe.py script"
+```
+
+---
+
+### Task 4: 创建 evals 测试用例
+
+**Files:**
+- Create: `skills/video-transcribe/evals/evals.json`
+
+**Step 1: 写入测试用例**
+
+```json
+{
+  "skill_name": "video-transcribe",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "提取这个YouTube视频的文字 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "expected_output": "Skill应该: 1)调用video-download下载视频 2)用yt-dlp下载字幕 3)是英文则翻译成中文 4)输出到txt文件",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我把这个B站视频转成文字 https://www.bilibili.com/video/BV1xx411c7XD",
+      "expected_output": "Skill应该处理B站视频，尝试下载字幕后转写",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "下载这个抖音视频的文字 https://v.douyin.com/abc123",
+      "expected_output": "Skill应该使用Whisper进行语音识别",
+      "files": []
+    }
+  ]
+}
+```
+
+**Step 2: 提交**
+
+```bash
+git add skills/video-transcribe/evals/evals.json
+git commit -m "feat: add evals for video-transcribe"
+```
+
+---
+
+### Task 5: 更新 README（可选）
+
+**Files:**
+- Modify: `skills/video-download/SKILL.md`
+
+**添加一行到表格：**
+
+```markdown
+| 视频转文字 | video-transcribe | 需要先下载视频再提取文字 |
+```
+
+---
+
+**Plan complete and saved to `docs/plans/2026-03-14-video-transcribe-plan.md`.**
+
+Two execution options:
+
+1. **Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+
+2. **Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+
+Which approach?
