@@ -10,5 +10,5 @@ dependencies = [
 [project.optional-dependencies]
 whisper = ["openai-whisper"]
 
-[tool.uv]
-dev-dependencies = []
+[dependency-groups]
+dev = []
