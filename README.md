@@ -11,11 +11,44 @@
 - **video-transcribe**：从视频URL提取文字并翻译，支持字幕下载（YouTube/B站）和语音识别（抖音/小红书），使用 faster-whisper 进行语音转录。
   - 详情见：`skills/video-transcribe/SKILL.md`
 
-## 使用方式（建议）
+## 使用方式（npm skills 包管理）
 
-- 将本仓库作为你的「个人 Skill 库」，在本地或云端同步。
-- 在支持自定义 Skills 的 Agent 中，根据各自平台的文档，把对应的 `SKILL.md` 引入或引用。
-- 新增 Skill 时，在 `skills/skills/` 目录下新建子文件夹，并添加对应的 `SKILL.md` 即可。
+### 1. 安装 skills 工具
+
+```bash
+npm install -g skills
+```
+
+### 2. 安装技能
+
+```bash
+# 安装所有技能
+skills install
+
+# 安装单个技能
+skills install video-download
+skills install video-transcribe
+```
+
+### 3. 使用技能
+
+在支持自定义 Skills 的 Agent 或 IDE（如 Cursor、Claude Code）中，引用对应的 `SKILL.md` 文件即可。
+
+### 4. 新增 Skill
+
+- 在 `skills/skills/` 目录下新建子文件夹
+- 添加对应的 `SKILL.md` 文件（参考现有技能作为模板）
+- 运行 `skills install` 安装新技能
+
+## 技能依赖说明
+
+- **video-download**：纯文档技能，无需额外依赖
+- **video-transcribe**：需要 Python 3.8+ 和 uv 依赖管理工具
+  ```bash
+  cd skills/video-transcribe
+  uv sync
+  source .venv/bin/activate
+  ```
 
 ## 目录结构示例
 
