@@ -156,25 +156,30 @@ def extract_text_from_subtitle(content):
 
 
 def transcribe_with_whisper(video_path):
-    """使用 Whisper 语音识别"""
+    """使用 faster-whisper 语音识别"""
     print("[2/4] 使用 Whisper 识别语音...")
 
     try:
-        import whisper
+        from faster_whisper import WhisperModel
     except ImportError:
-        print("错误: 请先安装 whisper")
-        print("  pip3 install openai-whisper")
+        print("错误: 请先安装 faster-whisper")
+        print("  uv sync")
         return None
 
-    # 加载模型 (使用 base 模型以提高速度)
+    # 加载模型 (使用 tiny 模型以提高速度)
     print("  加载 Whisper 模型...")
-    model = whisper.load_model("base")
+    model = WhisperModel("tiny", device="cpu", compute_type="int8")
 
     # 转写
     print("  识别中...")
-    result = model.transcribe(video_path, language=None)  # 自动检测语言
+    segments, info = model.transcribe(video_path, language=None)  # 自动检测语言
 
-    return result.get('text', '').strip()
+    # 合并所有段落
+    text_parts = []
+    for segment in segments:
+        text_parts.append(segment.text.strip())
+
+    return ' '.join(text_parts)
 
 
 def translate_to_chinese(text):
