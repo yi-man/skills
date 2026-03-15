@@ -11,7 +11,10 @@ import re
 import subprocess
 import tempfile
 
-VIDEO_DOWNLOAD_SCRIPT = os.path.expanduser('~/.cursor/skills/video-download/scripts/download.py')
+# 获取脚本所在目录的相对路径
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SKILLS_DIR = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+VIDEO_DOWNLOAD_SCRIPT = os.path.join(SKILLS_DIR, 'video-download', 'scripts', 'download.py')
 DOWNLOADS_DIR = os.path.expanduser('~/Downloads')
 
 
@@ -166,9 +169,9 @@ def transcribe_with_whisper(video_path):
         print("  uv sync")
         return None
 
-    # 加载模型 (使用 tiny 模型以提高速度)
+    # 加载模型 (使用 large-v3 模型以提高精度)
     print("  加载 Whisper 模型...")
-    model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    model = WhisperModel("large-v3", device="cpu", compute_type="int8")
 
     # 转写
     print("  识别中...")
