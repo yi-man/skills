@@ -22,8 +22,7 @@ uv sync
 
 ```bash
 cd <skill安装目录>
-source .venv/bin/activate
-python3 scripts/transcribe.py "<视频链接>"
+uv run python scripts/transcribe.py "<视频链接>"
 ```
 
 ## 支持平台

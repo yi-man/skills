@@ -25,12 +25,8 @@ npm install -g skills
 
 ```bash
 # 将本仓库作为技能包添加（全局安装）
-skills add https://github.com/your-username/skills -g
+npx skills add yi-man/skills
 
-# 或克隆到本地后添加
-git clone https://github.com/your-username/skills.git
-cd skills
-skills add . -g
 ```
 
 ### 3. 查看可用技能
@@ -48,7 +44,7 @@ skills ls -g
 
 - 使用 `skills init` 命令初始化新技能：
   ```bash
-  skills init my-new-skill
+  npx skills init my-new-skill
   ```
 - 或者在 `skills/` 目录下手动创建子文件夹
 - 添加对应的 `SKILL.md` 文件（参考现有技能作为模板）
@@ -82,4 +78,3 @@ skills/
 ├── docs/
 └── .gitignore
 ```
-
