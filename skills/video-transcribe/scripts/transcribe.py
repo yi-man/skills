@@ -3,7 +3,10 @@
 视频转文字脚本
 
 用法:
-  python3 transcribe.py "<视频链接>"
+  uv run python scripts/transcribe.py "<本地视频路径>"
+
+请先使用 video-download Skill 下载视频，再将得到的本地路径传入本脚本。
+若传入的是 URL，则仅尝试拉取字幕（不下载视频）；无法拉取时会提示先使用 video-download。
 """
 import sys
 import os
@@ -11,10 +14,7 @@ import re
 import subprocess
 import tempfile
 
-# 获取脚本所在目录的相对路径
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SKILLS_DIR = os.path.dirname(os.path.dirname(SCRIPT_DIR))
-VIDEO_DOWNLOAD_SCRIPT = os.path.join(SKILLS_DIR, 'video-download', 'scripts', 'download.py')
 DOWNLOADS_DIR = os.path.expanduser('~/Downloads')
 
 
@@ -57,42 +57,6 @@ def download_subtitles(url):
                         print(f"  成功下载字幕")
                         return text
 
-    return None
-
-
-def download_video(url):
-    """使用 video-download 下载视频"""
-    print(f"[1/4] 下载视频: {url}")
-
-    # 调用 video-download
-    result = subprocess.run(
-        ['python3', VIDEO_DOWNLOAD_SCRIPT, url],
-        capture_output=True,
-        text=True
-    )
-
-    if result.returncode != 0:
-        print(f"下载失败: {result.stderr}")
-        return None
-
-    # 查找下载的文件
-    match = re.search(r'下载完成:?\s+(.+\.mp4)', result.stdout)
-    if match:
-        return match.group(1).strip()
-
-    # 尝试在 Downloads 目录找最新的 mp4 文件
-    mp4_files = []
-    if os.path.exists(DOWNLOADS_DIR):
-        for f in os.listdir(DOWNLOADS_DIR):
-            if f.endswith('.mp4'):
-                path = os.path.join(DOWNLOADS_DIR, f)
-                mp4_files.append((path, os.path.getmtime(path)))
-
-    if mp4_files:
-        mp4_files.sort(key=lambda x: x[1], reverse=True)
-        return mp4_files[0][0]
-
-    print(f"无法找到下载的视频文件")
     return None
 
 
@@ -235,29 +199,39 @@ def save_result(original_text, translated_text, video_path):
     return output_path
 
 
-def transcribe(url):
-    """主流程"""
+def transcribe(input_arg):
+    """主流程：接受本地视频路径或 URL（仅尝试拉取字幕）。"""
+    input_arg = input_arg.strip()
+    is_url = input_arg.startswith('http://') or input_arg.startswith('https://')
     video_path = None
+    text = None
 
-    # 1. 先尝试直接用 URL 下载字幕（更高效）
-    text = download_subtitles(url)
-
-    # 2. 字幕失败，再下载视频用 Whisper
-    if not text:
-        video_path = download_video(url)
-        if not video_path:
-            print("错误: 视频下载失败")
+    if is_url:
+        # 仅尝试拉取字幕，不下载视频
+        print(f"[1/4] 尝试从链接拉取字幕: {input_arg[:60]}...")
+        text = download_subtitles(input_arg)
+        if not text:
+            print("该链接无法直接拉取字幕。请先使用 video-download Skill 下载视频，再传入本地路径：")
+            print("  uv run python scripts/transcribe.py <本地视频路径>")
             return
+    else:
+        # 本地路径：先展开 ~
+        video_path = os.path.expanduser(input_arg)
+        if not os.path.isfile(video_path):
+            print(f"错误: 文件不存在: {video_path}")
+            print("请先使用 video-download Skill 下载视频，再传入得到的本地路径。")
+            return
+        print(f"[1/4] 使用本地视频: {video_path}")
+        text = get_subtitles_with_ytdlp(video_path)
+        if not text:
+            text = transcribe_with_whisper(video_path)
         print(f"  视频路径: {video_path}")
-        text = transcribe_with_whisper(video_path)
-
     if not text:
         print("错误: 无法提取文字，请确保视频有声音")
         return
 
     print(f"  提取文字长度: {len(text)} 字符")
 
-    # 4. 检测语言并翻译
     lang = detect_language(text)
     print(f"  检测语言: {'中文' if lang == 'zh' else '英文'}")
 
@@ -265,8 +239,6 @@ def transcribe(url):
     if lang == 'en':
         translated = translate_to_chinese(text)
 
-    # 5. 保存结果
-    # 用视频名或时间戳作为文件名
     if not video_path:
         video_path = f"video_{int(__import__('time').time())}"
     save_result(text, translated, video_path)
@@ -274,7 +246,8 @@ def transcribe(url):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("用法: python3 transcribe.py <视频链接>")
+        print("用法: uv run python scripts/transcribe.py <本地视频路径>")
+        print("请先使用 video-download Skill 下载视频，再将得到的路径传入本脚本。")
         sys.exit(1)
 
     transcribe(sys.argv[1])
