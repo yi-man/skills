@@ -1,0 +1,13 @@
+[project]
+name = "video-transcribe"
+version = "0.1.0"
+description = "从视频URL提取文字并翻译"
+requires-python = ">=3.12"
+dependencies = [
+    "googletrans>=4.0.0",
+    "faster-whisper",
+    "onnxruntime>=1.14,<1.24", # 1.23.x 最后支持 macOS Intel x86_64
+]
+
+[dependency-groups]
+dev = []
