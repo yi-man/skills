@@ -13,32 +13,46 @@
 
 ## 使用方式（npm skills 包管理）
 
+本仓库作为一个技能集合包，可以通过 `skills` 命令行工具安装和管理。
+
 ### 1. 安装 skills 工具
 
 ```bash
 npm install -g skills
 ```
 
-### 2. 安装技能
+### 2. 添加本技能仓库
 
 ```bash
-# 安装所有技能
-skills install
+# 将本仓库作为技能包添加（全局安装）
+skills add https://github.com/your-username/skills -g
 
-# 安装单个技能
-skills install video-download
-skills install video-transcribe
+# 或克隆到本地后添加
+git clone https://github.com/your-username/skills.git
+cd skills
+skills add . -g
 ```
 
-### 3. 使用技能
+### 3. 查看可用技能
+
+```bash
+# 列出已安装的技能
+skills ls -g
+```
+
+### 4. 使用技能
 
 在支持自定义 Skills 的 Agent 或 IDE（如 Cursor、Claude Code）中，引用对应的 `SKILL.md` 文件即可。
 
-### 4. 新增 Skill
+### 5. 新增 Skill
 
-- 在 `skills/skills/` 目录下新建子文件夹
+- 使用 `skills init` 命令初始化新技能：
+  ```bash
+  skills init my-new-skill
+  ```
+- 或者在 `skills/` 目录下手动创建子文件夹
 - 添加对应的 `SKILL.md` 文件（参考现有技能作为模板）
-- 运行 `skills install` 安装新技能
+- 本地开发时，使用 `skills add . -g` 更新安装
 
 ## 技能依赖说明
 
