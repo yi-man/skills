@@ -31,7 +31,7 @@ def detect_language(text):
 
 def download_subtitles(url):
     """尝试用 yt-dlp 直接下载字幕"""
-    print("[2/4] 尝试下载字幕...")
+    print("  尝试下载字幕...")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
@@ -63,7 +63,7 @@ def download_subtitles(url):
 
 def get_subtitles_with_ytdlp(video_path):
     """用本地视频路径下载字幕（yt-dlp 也支持本地文件）"""
-    print("[2/4] 尝试从本地视频下载字幕...")
+    print("  尝试从本地视频下载字幕...")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
@@ -125,7 +125,7 @@ def extract_text_from_subtitle(content):
 
 def transcribe_with_whisper(video_path):
     """使用 faster-whisper 语音识别"""
-    print("[2/4] 使用 Whisper 识别语音...")
+    print("  使用 Whisper 识别语音...")
 
     try:
         from faster_whisper import WhisperModel
@@ -244,6 +244,7 @@ def transcribe(input_arg):
     if is_url:
         # 仅尝试拉取字幕，不下载视频
         print(f"[1/4] 尝试从链接拉取字幕: {input_arg[:60]}...")
+        print("[2/4] 提取文字")
         text = download_subtitles(input_arg)
         if not text:
             print("该链接无法直接拉取字幕。请先使用 video-download Skill 下载视频，再传入本地路径：")
@@ -257,8 +258,10 @@ def transcribe(input_arg):
             print("请先使用 video-download Skill 下载视频，再传入得到的本地路径。")
             return
         print(f"[1/4] 使用本地视频: {video_path}")
+        print("[2/4] 提取文字")
         text = get_subtitles_with_ytdlp(video_path)
         if not text:
+            print("  字幕不可用，改用 Whisper 识别")
             text = transcribe_with_whisper(video_path)
         print(f"  视频路径: {video_path}")
     if not text:
