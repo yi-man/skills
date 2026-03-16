@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOWNLOADS_DIR = os.path.expanduser('~/Downloads')
@@ -179,6 +180,11 @@ def translate_to_chinese(text):
         return None
 
 
+def _escape_markdown(text):
+    """转义 Markdown 特殊字符，防止格式混乱"""
+    return text.replace('`', '\\`').replace('*', '\\*').replace('_', '\\_').replace('#', '\\#')
+
+
 def _text_to_md_paragraphs(text):
     """将长文本按段落整理，便于 Markdown 阅读"""
     if not text or not text.strip():
@@ -196,10 +202,12 @@ def _text_to_md_paragraphs(text):
 def save_result(original_text, translated_text, video_path):
     """保存结果为 Markdown 文件"""
     video_name = os.path.splitext(os.path.basename(video_path))[0]
+    safe_video_name = _escape_markdown(video_name)
+    safe_path = _escape_markdown(video_path)
     output_path = os.path.join(DOWNLOADS_DIR, f"{video_name}_transcript.md")
 
     lines = []
-    lines.append(f"# {video_name}")
+    lines.append(f"# {safe_video_name}")
     lines.append("")
     if translated_text:
         lines.append("## 中文翻译")
@@ -217,7 +225,7 @@ def save_result(original_text, translated_text, video_path):
         lines.append(_text_to_md_paragraphs(original_text))
     lines.append("")
     lines.append("---")
-    lines.append(f"*转写自: `{video_path}`*")
+    lines.append(f"*转写自: `{safe_path}`*")
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -267,7 +275,7 @@ def transcribe(input_arg):
         translated = translate_to_chinese(text)
 
     if not video_path:
-        video_path = f"video_{int(__import__('time').time())}"
+        video_path = f"video_{int(time.time())}"
     save_result(text, translated, video_path)
 
 
