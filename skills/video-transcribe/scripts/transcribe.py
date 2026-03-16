@@ -179,21 +179,48 @@ def translate_to_chinese(text):
         return None
 
 
-def save_result(original_text, translated_text, video_path):
-    """保存结果到文件"""
-    # 用视频名作为输出文件名
-    video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join(DOWNLOADS_DIR, f"{video_name}_transcript.txt")
+def _text_to_md_paragraphs(text):
+    """将长文本按段落整理，便于 Markdown 阅读"""
+    if not text or not text.strip():
+        return ""
+    # 按双换行分段落，单换行合并为同一段
+    blocks = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if not blocks:
+        # 无双换行则整段输出，内部单换行保留
+        return text.strip().replace("\n", "  \n")  # 双空格 = Markdown 换行
+    return "\n\n".join(
+        p.replace("\n", "  \n") if "\n" in p else p for p in blocks
+    )
 
-    with open(output_path, 'w', encoding='utf-8') as f:
-        if translated_text:
-            f.write("中文翻译:\n")
-            f.write(translated_text)
-            f.write("\n\n---\n\n")
-            f.write("英文原文:\n")
-            f.write(original_text)
-        else:
-            f.write(original_text)
+
+def save_result(original_text, translated_text, video_path):
+    """保存结果为 Markdown 文件"""
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
+    output_path = os.path.join(DOWNLOADS_DIR, f"{video_name}_transcript.md")
+
+    lines = []
+    lines.append(f"# {video_name}")
+    lines.append("")
+    if translated_text:
+        lines.append("## 中文翻译")
+        lines.append("")
+        lines.append(_text_to_md_paragraphs(translated_text))
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        lines.append("## 英文原文")
+        lines.append("")
+        lines.append(_text_to_md_paragraphs(original_text))
+    else:
+        lines.append("## 正文")
+        lines.append("")
+        lines.append(_text_to_md_paragraphs(original_text))
+    lines.append("")
+    lines.append("---")
+    lines.append(f"*转写自: `{video_path}`*")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
     print(f"[4/4] 结果已保存到: {output_path}")
     return output_path

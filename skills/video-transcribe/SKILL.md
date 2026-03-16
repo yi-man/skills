@@ -36,14 +36,29 @@ uv run python scripts/transcribe.py "<本地视频路径>"
 | 有现成字幕文件 | 从视频/字幕提取文字      |
 | 无字幕         | 使用 faster-whisper 语音识别 |
 
-## 输出示例
+## 输出
 
-```
-中文翻译:
-这是视频内容...
+结果保存为 **Markdown** 文件（`<视频名>_transcript.md`），便于阅读与二次编辑。
+
+### 输出示例
+
+```markdown
+# 视频标题
+
+## 中文翻译
+
+这是视频内容的第一段。
+
+这是第二段。
 
 ---
 
-英文原文:
-This is the video content...
+## 英文原文
+
+This is the first paragraph of the video content.
+
+This is the second paragraph.
+
+---
+*转写自: `~/Downloads/视频标题.mp4`*
 ```
