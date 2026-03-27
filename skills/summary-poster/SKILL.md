@@ -67,11 +67,30 @@ frontend-design --input "<解析后的内容>" --style "modern" --layout "grid" 
 
 使用 agent-browser 访问设计好的页面并截图，**必须保存到当前执行目录**：
 
+**⚠️ **重要：优先使用无头模式**
+无头模式在后台运行，不显示浏览器窗口，速度更快且更稳定，完全支持截图功能。
+
 ```bash
-# 推荐用法
+# 推荐：使用 browser_run_code 的无头模式（推荐）
+frontend-design 设计好页面后，使用以下代码截图：
+
+# 示例 1: 直接使用 browser_take_screenshot
+browser_take_screenshot --fullPage true --filename "output-screenshot.png"
+
+# 示例 2: 使用 browser_run_code 更灵活的无头模式
+async (page) => {
+  await page.goto('http://localhost:8080/your-page.html');
+  await page.waitForLoadState('networkidle');
+  await page.screenshot({
+    fullPage: true,
+    path: 'output-screenshot.png',
+    scale: 'css',
+    type: 'png'
+  });
+}
+
+# 传统 agent-browser 用法（如果需要显示窗口）
 agent-browser --url "<页面URL>" --screenshot "full" --output "$(basename <页面URL> .html)-screenshot.png"
-# 示例
-agent-browser --url "file:///tmp/academic-page.html" --screenshot "full" --output "academic-style-page.jpg"
 ```
 
 ## 快速参考
