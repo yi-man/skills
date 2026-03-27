@@ -24,10 +24,11 @@ description: Use when user provides article content or web URLs and requests a d
 
 ## Core Workflow
 
-### Step 1: Read Content with WebFetch
+### Step 1: Read Content
 
 读取和解析用户提供的内容：
 
+#### 读取 URL 内容
 ```bash
 # 读取完整 URL 内容
 WebFetch --url "<URL>" --description "提取文章的主要内容"
@@ -37,6 +38,19 @@ WebFetch --url "<URL>" --description "提取文章的主要内容"
 # 读取指定部分内容（含用户说明）
 WebFetch --url "<URL>" --description "提取文档中第 3-5 部分，关于技术架构的内容"
 ```
+
+#### 读取本地文档内容
+```bash
+# 使用 Read 工具直接读取本地文本文件
+Read "<本地文件路径>"
+```
+
+```bash
+# 使用 WebFetch 读取本地文件（需要 file:// 协议）
+WebFetch --url "file://<本地文件绝对路径>" --description "提取文档内容"
+```
+
+**注意：** 如果网络访问受限（如企业防火墙限制），建议直接使用 Read 工具读取本地文件
 
 ### Step 2: Design Page with frontend-design
 
@@ -141,8 +155,32 @@ agent-browser --url "<设计好的页面URL>" --screenshot "full" --output "rese
 | Issue | Fix |
 |-------|-----|
 | WebFetch fails to read content | Check URL validity, verify content is publicly accessible, adjust description |
+| WebFetch 网络访问受限 | 使用 Read 工具直接读取本地文件，或让用户直接提供文本内容 |
 | frontend-design fails | Check content format completeness, try different style/layout, simplify design requirements |
 | agent-browser screenshot fails | Verify page accessibility, adjust screenshot dimensions and format |
+| agent-browser --allow-file-access 不起作用 | 先运行 `agent-browser close` 关闭 daemon，再使用新选项重启 |
+
+### 网络受限环境处理
+
+如果企业安全策略限制了外部网络访问，可以采用以下替代方案：
+
+1. **使用本地文件**：让用户将需要处理的内容保存为本地文本文件
+2. **直接提供文本**：用户可以直接粘贴或输入需要处理的文本内容
+3. **简化工作流程**：跳过 WebFetch 步骤，直接使用提供的文本进行页面设计
+
+#### 替代工作流程示例
+
+```bash
+# 步骤 1: 直接使用 Read 工具读取本地文件
+Read "<本地文件路径>"
+
+# 步骤 2: 使用 frontend-design 设计页面
+frontend-design --input "<读取到的内容>" --style "minimal" --layout "article" --title "文档标题"
+
+# 步骤 3: 使用 agent-browser 截图
+agent-browser --url "file://<本地HTML文件路径>" --screenshot "full" --output "summary-poster.png"
+```
+
 
 ## Implementation Notes
 
