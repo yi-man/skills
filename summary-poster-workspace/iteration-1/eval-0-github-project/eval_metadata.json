@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "github-project-summary",
+  "prompt": "提取https://github.com/obra/superpowers中包含的所有skill，进行分类，使用介绍，触发时机说明，skill之间的互相引用关系，设计成一个页面并截图",
+  "assertions": []
+}

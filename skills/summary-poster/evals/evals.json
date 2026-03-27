@@ -1,0 +1,23 @@
+{
+  "skill_name": "summary-poster",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "提取https://github.com/obra/superpowers中包含的所有skill，进行分类，使用介绍，触发时机说明，skill之间的互相引用关系，设计成一个页面并截图",
+      "expected_output": "Skill应该: 1) 使用WebFetch读取内容 2) 使用frontend-design设计页面 3) 使用agent-browser截图",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "请提取这个文档的第2部分内容，设计成现代风格页面并截图",
+      "expected_output": "Skill应该: 1) 使用WebFetch读取文档并提取第2部分 2) 使用modern风格设计页面 3) 生成截图",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "提取本地文档 evals/local-text.txt 内容， 转成学术风格的页面截图",
+      "expected_output": "Skill应该: 1) 使用WebFetch读取本地文件 2) 使用minimal风格设计学术页面 3) 生成截图",
+      "files": []
+    }
+  ]
+}
