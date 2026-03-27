@@ -9,13 +9,13 @@
     },
     {
       "id": 2,
-      "prompt": "请提取这个文档的第2部分内容，设计成现代风格页面并截图",
+      "prompt": "请提取https://mp.weixin.qq.com/s/1GRDV1GGXCT28MlYlP2pSA这个文档的内容，设计成现代风格页面并截图",
       "expected_output": "Skill应该: 1) 使用WebFetch读取文档并提取第2部分 2) 使用modern风格设计页面 3) 生成截图",
       "files": []
     },
     {
       "id": 3,
-      "prompt": "提取本地文档 evals/local-text.txt 内容， 转成学术风格的页面截图",
+      "prompt": "提取本地文档 ~/mine/claude-code-projects/skills/skills/summary-poster/evals/local-text.txt 内容， 转成学术风格的页面截图",
       "expected_output": "Skill应该: 1) 使用WebFetch读取本地文件 2) 使用minimal风格设计学术页面 3) 生成截图",
       "files": []
     }
