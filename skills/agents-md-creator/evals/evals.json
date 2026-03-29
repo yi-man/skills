@@ -1,0 +1,29 @@
+{
+  "skill_name": "agents-md-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我正在创建一个新的 Next.js 14 电商项目，项目名为 ShopFront。这是一个使用 App Router、支付功能和 Prisma ORM 的项目。请帮我创建 AGENTS.md 文档。代码风格要求：TypeScript 严格模式，不使用 any 类型；使用命名导出而不是默认导出；CSS 使用 Tailwind 工具类，不使用自定义 CSS 文件。常用命令：npm run dev 启动开发服务器（端口 3000）；npm run test 运行 Jest 测试；npm run test:e2e 运行 Playwright 端到端测试；npm run lint 进行 ESLint 检查；npm run db:migrate 运行 Prisma 迁移。项目架构使用标准的 Next.js App Router 结构。",
+      "expected_output": "创建完整的 AGENTS.md 文件，包含 Project、规范、常用命令、项目架构、重要说明 五个部分，并且自动创建 CLAUDE.md 软链接",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "请为我的 Django REST API 项目创建 AGENTS.md。项目名为 TaskManager，使用 Django 4.2 和 Django REST Framework 3.14 构建任务管理 API。代码风格：PEP 8 规范，使用 Black 格式化；类型注解使用 mypy 检查；所有视图使用基于类的视图。常用命令：python manage.py runserver 启动开发服务器；pytest 运行测试；pytest --cov 生成覆盖率报告；flake8 进行代码检查；python manage.py migrate 运行数据库迁移。",
+      "expected_output": "创建符合 Django 项目特点的 AGENTS.md 文档，包含默认的重要说明内容",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我需要更新项目的 AGENTS.md。项目是一个使用 React + Vite 的前端应用，名为 DashboardUI。请更新文档，添加最近添加的功能说明：现在项目使用了 shadcn/ui 组件库和 Zustand 状态管理。同时更新常用命令，添加了 npm run storybook 和 npm run build 命令。",
+      "expected_output": "更新现有 AGENTS.md 文档，反映最新的项目状态和新增功能",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "请为我的 Python 数据分析项目创建 AGENTS.md。项目名为 DataAnalyzer，使用 Pandas、NumPy 和 Matplotlib 进行数据分析。代码风格：PEP 8 规范，使用 uv 管理依赖，代码格式化使用 Black。常用命令：uv run python main.py 运行主程序；uv run pytest 运行测试；uv pip install 安装依赖。",
+      "expected_output": "创建符合 Python 项目特点的 AGENTS.md 文档，包含默认的重要说明内容",
+      "files": []
+    }
+  ]
+}
