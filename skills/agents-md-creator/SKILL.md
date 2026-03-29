@@ -69,6 +69,7 @@ AGENTS.md 必须严格遵循以下格式和顺序：
 - 所有测试都需要使用真实环境，不要mock。例如，数据库使用真实数据库等
 - 遇到问题优先使用 /systematic-debugging 彻底查明原因，再去解决。解决完之后，一定要验证、跑完所有测试才可以生成完成
 - 端口号勿随意修改
+- 文档控制在 200 行以内，如内容过多需要拆分文件
 
 ## 完整执行流程
 
@@ -93,6 +94,25 @@ ls -la
 ### 步骤 3：编写 AGENTS.md
 
 根据收集的信息，严格按照格式编写 AGENTS.md。
+
+### 步骤 3.5：检查文档长度
+
+编写完成后，检查文档行数：
+
+```bash
+wc -l AGENTS.md
+```
+
+- 如果行数 ≤ 200：继续下一步
+- 如果行数 > 200：按照"文档过长的处理方式"拆分文档
+
+#### 拆分文档的流程
+
+1. 创建 `docs/` 目录（如果不存在）
+2. 将详细的 项目架构 移到 `docs/architecture.md`
+3. 将详细的 规范 移到 `docs/coding-standards.md`
+4. 在 AGENTS.md 中保留摘要和链接
+5. 重新检查 AGENTS.md 的行数，确保 ≤ 200
 
 #### Project 部分示例
 
@@ -207,3 +227,27 @@ ls -la CLAUDE.md
 - 确保软链接创建成功
 - 如果目录中已有 AGENTS.md，先询问用户是更新还是覆盖
 - 文档内容要简洁准确，避免冗余
+- **文档控制在 200 行以内**，如内容过多需要拆分文件
+
+### 文档过长的处理方式
+
+如果 AGENTS.md 预计超过 200 行，按以下方式处理：
+
+1. 将详细的 项目架构 拆分为单独的文件 `docs/architecture.md`
+2. 将详细的 规范 拆分为单独的文件 `docs/coding-standards.md`
+3. 在 AGENTS.md 中保留摘要，并添加链接指向详细文档
+4. 确保所有拆分的文件都放在 `docs/` 目录下
+
+#### 拆分后 AGENTS.md 中的链接示例
+
+```markdown
+### 项目架构
+
+详见 [docs/architecture.md](docs/architecture.md)
+```
+
+```markdown
+### 规范
+
+详见 [docs/coding-standards.md](docs/coding-standards.md)
+```
