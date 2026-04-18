@@ -21,6 +21,7 @@
   - `/video-download/`: 视频下载技能（使用 yt-dlp）
   - `/video-transcribe/`: 视频转文字技能（使用 Python + Whisper）
   - `/summary-poster/`: 文档内容转页面设计与截图技能
+  - `/ralph-dev/`: 贯穿式完整开发闭环（分支门禁 + feature-dev + 测试/浏览器验收 + 提交/PR/CI）
 - `/docs/`: 项目文档
 - `/README.md`: 项目说明文档
 - `/CLAUDE.md`: Claude Code 配置和使用指南
