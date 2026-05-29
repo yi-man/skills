@@ -10,6 +10,8 @@
   - 详情见：`skills/video-download/SKILL.md`
 - **video-transcribe**：从视频URL提取文字并翻译，支持字幕下载（YouTube/B站）和语音识别（抖音/小红书），使用 faster-whisper 进行语音转录。
   - 详情见：`skills/video-transcribe/SKILL.md`
+- **how-to-understand-an-industry**：根据《如何快速了解一个行业》的方法论，辅助用户按研究对象、生命周期、商业模式、市场规模、防守性、盈利性、外部因素、景气度和研究方法快速看懂一个行业。
+  - 详情见：`skills/how-to-understand-an-industry/SKILL.md`
 
 ## 使用方式（npm skills 包管理）
 
